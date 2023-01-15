@@ -1,26 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { Route, Switch } from "react-router-dom";
+import AuthContext from "./providers/auth";
+import LoginPage from "./routes/login/login.jsx";
+import TasksPage from './routes/tasks/tasks.jsx'
+import "./App.scss";
 
-function App() {
+const App = () => {
+  const authCtx = React.useContext(AuthContext);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Switch>
+      {/* public routes */}
+      <Route path="/" exact>
+        <LoginPage />
+      </Route>
+      {/* private routes */}
+      {authCtx.user && (
+        <Switch>
+          <Route path="/tasks">
+            <TasksPage />
+          </Route>
+        </Switch>
+      )}
+    </Switch>
   );
-}
+};
 
 export default App;
