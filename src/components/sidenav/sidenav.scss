@@ -1,0 +1,140 @@
+.menu-button {
+  transition: all 0.33s ease;
+  left: 0;
+  position: absolute;
+  z-index: 2;
+  font-size: 24px;
+  cursor: pointer;
+  top: 14px;
+  left: 18px;
+  line-height: 0;
+  color: white;
+  &.expanded {
+    left: 210px;
+  }
+}
+.sidenav {
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, .5), rgba(249, 198, 198, .1));
+  color: white;
+  user-select: none;
+  width: 0;
+  height: 100%;
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  top: 0px;
+  text-align: center;
+  overflow-x: hidden;
+  transition: all 0.33s ease;
+  opacity: 0;
+  border-right: 1px solid white;
+  .item {
+    font-size: 14px;
+    width: 100%;
+    display: flex;
+    cursor: pointer;
+    min-height: 48px;
+    justify-content: space-between;
+    flex-direction: column;
+    border: 1px transparent solid;
+    border-left: none;
+
+    &:first-child {
+      margin-top: 50px;
+    }
+
+    .item-container {
+      white-space: nowrap;
+      flex-wrap: wrap;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+
+      .name {
+        position: relative;
+        height: 48px;
+        left: 25px;
+        width: 50%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+      }
+
+      .expand-button {
+        height: 48px;
+        text-align: right;
+        position: relative;
+        right: 25px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        color: white;
+        svg {
+          fill: white;
+        }
+
+        &.expanded {
+          transform: rotate(180deg);
+          justify-content: flex-start;
+        }
+
+        svg {
+          height: 20px;
+        }
+      }
+    }
+
+    &:hover {
+      border: 1px white solid;
+      border-left: none;
+
+      .subitem {
+        background: transparent;
+      }
+    }
+
+    &.selected {
+      // border: 1px white solid;
+      border-left: none;
+      font-weight: bold;
+
+      &:hover {
+        .name {
+          color: white;
+        }
+      }
+    }
+
+    .subitem {
+      position: relative;
+      padding-left: 40px;
+      min-height: 48px;
+      display: flex;
+      width: 100%;
+      align-items: center;
+      cursor: pointer;
+
+      &:hover {
+        background-image: linear-gradient(to bottom, rgba(249, 198, 198, 1), rgba(249, 198, 198, .5));
+        color: black;
+      }
+
+      &.selected {
+        background-image: linear-gradient(to bottom, rgba(249, 198, 198, 1), rgba(249, 198, 198, .5));
+        color: white;
+        font-weight: bold;
+      }
+    }
+  }
+  .item:nth-child(1) {
+    border: none;
+    background: transparent;
+  }
+
+  &.expanded {
+    width: 250px;
+    opacity: 1;
+  }
+}
