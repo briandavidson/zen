@@ -2,7 +2,7 @@
   transition: all 0.33s ease;
   left: 0;
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   font-size: 24px;
   cursor: pointer;
   top: 14px;
@@ -20,7 +20,7 @@
   width: 0;
   height: 100%;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   left: 0;
   top: 0px;
   text-align: center;
@@ -87,7 +87,6 @@
     }
 
     &:hover {
-      border: 1px white solid;
       border-left: none;
 
       .subitem {
@@ -136,5 +135,18 @@
   &.expanded {
     width: 250px;
     opacity: 1;
+  }
+}
+.sidenav-background {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  height: 0%;
+  width: 0%;
+  background: rgba(0, 0, 0, 90%);
+  &.expanded {
+    height: 100%;
+    width: 100%;
   }
 }

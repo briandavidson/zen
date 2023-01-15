@@ -22,6 +22,10 @@ const TasksPage = () => {
   const auth = getAuth(app);
   const db = ref(getDatabase(app));
 
+  React.useEffect(() => {
+    getTasks()
+  }, [])
+
   const clickPlus = () => {
     if (view === 'create') {
       setTask((prev) => {
@@ -131,6 +135,9 @@ const TasksPage = () => {
 
   const clickCheckbox = (item) => {
     console.dir(item)
+    // setTasks((prev) => {
+    //
+    // })
   }
 
   const getTask = (task_uid) => {
