@@ -21,23 +21,23 @@ const SideNav = () => {
   const [expanded, setExpanded] = React.useState(false);
 
   const logout = () => {
-    setSelected({})
-    setExpanded(false)
-    authCtx.logout()
-    history.push('/')
-  }
+    setSelected({});
+    setExpanded(false);
+    authCtx.logout();
+    history.push("/");
+  };
 
   const nav = (item) => {
     if (!authCtx.user?.uid) {
-      history.push('/')
-      setExpanded(false)
-      setSelected({})
-      return
+      history.push("/");
+      setExpanded(false);
+      setSelected({});
+      return;
     }
-    setSelected(item)
-    setExpanded(false)
-    history.push(item.route)
-  }
+    setSelected(item);
+    setExpanded(false);
+    history.push(item.route);
+  };
 
   return (
     <>
@@ -53,16 +53,21 @@ const SideNav = () => {
           <rect y="60" width="100" height="10"></rect>
         </svg>
       </div>
-      <div className={expanded ? 'sidenav-background expanded' : 'sidenav-background'} onClick={() => setExpanded(false)}>
-      </div>
+      <div
+        className={
+          expanded ? "sidenav-background expanded" : "sidenav-background"
+        }
+        onClick={() => setExpanded(false)}
+      ></div>
       <div className={expanded ? "sidenav expanded" : "sidenav"}>
         {navItems?.map((item, i) => (
           <div
-            key={i} className={selected.route === item.route ? "item selected" : "item"}
+            key={i}
+            className={selected.route === item.route ? "item selected" : "item"}
           >
             <div
               onClick={() => {
-                nav(item)
+                nav(item);
               }}
               className="item-container"
             >
@@ -85,4 +90,4 @@ const SideNav = () => {
   );
 };
 
-export default SideNav
+export default SideNav;
