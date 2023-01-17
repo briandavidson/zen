@@ -3,6 +3,7 @@ import { Route, Switch } from "react-router-dom";
 import AuthContext from "./providers/auth";
 import LoginPage from "./routes/login/login.jsx";
 import TasksPage from "./routes/tasks/tasks.jsx";
+import ProjectsPage from "./routes/projects/projects.jsx"
 import SideNav from "./components/sidenav/sidenav.jsx";
 import "./App.scss";
 
@@ -23,6 +24,9 @@ const App = () => {
           <Switch>
             <Route path="/tasks" exact>
               <TasksPage />
+            </Route>
+            <Route path="/projects" exact>
+              <ProjectsPage />
             </Route>
           </Switch>
         )}

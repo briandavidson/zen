@@ -4,7 +4,7 @@
   left: 0;
   height: 100%;
   width: 100%;
-  background: rgba(0, 0, 0, 98%);
+  background: rgba(0, 0, 0, 95%);
   display: flex;
   align-items: center;
   justify-content: space-evenly;
@@ -18,29 +18,89 @@
   position: absolute;
   z-index: 10;
   top: 5px;
-  right: 20px;
-  .plus {
-    position: relative;
+  right: 10px;
+  .share-icon {
+    position: absolute;
+    height: 22px;
+    top: 8px;
     right: 50px;
+  }
+  .add-task-to-project {
+    position: absolute;
+    right: 0px;
+    transition: all .33s ease;
+    &.add-task, &.edit-task {
+      right: 40px;
+      transform: rotate(45deg);
+    }
+  }
+  .cross {
+    position: relative;
+    right: 0px;
     transition: all .33s ease;
     transform: rotate(0deg);
-    &.list {
-      right: 0px;
+    &.create-project {
+      right: 40px;
+      transform: rotate(45deg);
     }
-    &.create {
-      right: 50px;
+    &.share-project {
+      right: 40px;
+      transform: rotate(45deg);
+    }
+    &.sharing {
+      right: 40px;
+      transform: rotate(135deg);
+    }
+    &.edit-project {
+      right: 85px;
       transform: rotate(45deg);
     }
   }
   .check {
     position: absolute;
+    right: 0px;
     transition: all .33s ease;
     &.create {
       display: inherit;
     }
-    &.list {
-      display: none;
-    }
+  }
+}
+.buttons {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.share-container {
+  background-image: url('../../assets/images/trees.jpg');
+  border-radius: 3px;
+  padding: 5px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  .share-input {
+    background: rgba(0, 0, 0, .75);
+    border: 1px solid transparent;
+    color: white;
+    outline: none;
+    padding: 10px 5px;
+    border-radius: 3px;
+    margin: 0px;
+  }
+  .share-message {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 12px;
   }
 }
 .content {
@@ -52,7 +112,7 @@
   transform: translate(-50%, -50%);
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, .9), rgba(0, 0, 0, .25));
   .items-list {
-    // background-image: url('/assets/trees.jpg');
+    // background-image: url('../../assets/images/trees.jpg');
     border-radius: 3px;
     padding: 2px;
     position: absolute;
@@ -60,7 +120,7 @@
     overflow: auto;
     top: 50px;
     left: 50%;
-    width: calc(100% - 37px);
+    width: calc(100% - 20px);
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
@@ -79,7 +139,8 @@
         width: 36px;
         margin-right: 0px;
         border-right: none;
-        border-radius: 3px;
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -117,6 +178,7 @@
         }
       }
       .text-container {
+        border-radius: 3px;
         height: 36px;
         display: flex;
         align-items: center;
@@ -159,10 +221,10 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: calc(100% - 50px);
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
+    width: calc(100% - 50px);
     input {
       background: rgba(0, 0, 0, .75);
       border: 1px solid transparent;
@@ -171,11 +233,6 @@
       padding: 10px 5px;
       border-radius: 3px;
       margin: 1px;
-    }
-    .project-dropdown {
-      position: absolute;
-      bottom: -40px;
-      color: white;
     }
   }
 }
