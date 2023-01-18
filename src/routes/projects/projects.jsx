@@ -27,10 +27,8 @@ const ProjectsPage = () => {
   });
   const [tasks, setTasks] = React.useState([]);
   const [task, setTask] = React.useState({name: ''});
-  const [projectList, setProjectList] = React.useState({})
   const [projects, setProjects] = React.useState([]);
   const [project, setProject] = React.useState({});
-  const [showSharing, setShowSharing] = React.useState(false)
   const [shareMessage, setShareMessage] = React.useState('')
   const [email, setEmail] = React.useState('')
   const authCtx = useContext(AuthContext);
@@ -53,16 +51,12 @@ const ProjectsPage = () => {
       let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`)
       off(userProjectListRef)
     };
-  }, []);
+  }, [authCtx.user, db]);
 
   const watchUserProjectList = () => {
     let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`)
     onValue(userProjectListRef, (snapshot) => {
-      console.log('list of user projects changed')
       let updatedProjectList = snapshot.val()
-      setProjectList((prev) => {
-        return updatedProjectList
-      })
       refreshProjectWatchers(updatedProjectList)
     })
   }
@@ -82,11 +76,12 @@ const ProjectsPage = () => {
   const watchProject = (project_uid) => {
     let projectRef = child(db, `projects/${project_uid}`)
     onValue(projectRef, (snapshot) => {
-      console.log('project changed: ' + project_uid)
-      console.dir(project)
       let it = snapshot.val()
-      console.dir(it)
       if (it) {
+        // the selected project changed, check for task list diffs
+        if (it.uid === project.uid) {
+          refreshTaskWatchers(it)
+        }
         setProjects((prev) => {
           let index = prev
             .map((element) => {
@@ -101,10 +96,6 @@ const ProjectsPage = () => {
           }
           return [...next];
         });
-        // the selected project changed, check for task list diffs
-        if (it.uid === project.uid) {
-          refreshTaskWatchers(it)
-        }
       } else {
         setProjects((prev) => {
           let index = prev
@@ -134,46 +125,10 @@ const ProjectsPage = () => {
     setProject((prev) => {
       return {
         owners: {},
-        name: 'after clickclosecreateproject',
+        name: '',
         uid: '',
         tasks: {}
       }
-    })
-  }
-
-  const clickClose = () => {
-    console.log('click close')
-    // close the show sharing screen if it's active
-    if (showSharing) {
-      setShowSharing((prev) => {
-        return false
-      })
-      return
-    }
-
-    // close the create / edit screen if it's active
-    setView((prev) => {
-      return 'list'
-    })
-    setShowSharing((prev) => {
-      return false
-    })
-    setEmail((prev) => {
-      return ''
-    })
-    setShareMessage((prev) => {
-      return ''
-    })
-    setProject((prev) => {
-      return {
-        owners: {},
-        name: 'after clickclose',
-        uid: '',
-        tasks: {}
-      }
-    })
-    setTasks((prev) => {
-      return []
     })
   }
 
@@ -247,7 +202,7 @@ const ProjectsPage = () => {
       setProject((prev) => {
         return {
           ...prev,
-          name: 'after adding another user',
+          name: '',
           tasks: {
             ...prev.tasks,
             [task_uid]: true
@@ -274,9 +229,6 @@ const ProjectsPage = () => {
 
   const selectProject = (item) => {
     setProject((prev) => {
-      console.log('current project, selected project')
-      console.dir(prev)
-      console.dir(item)
       return item
     })
     setView((prev) => {
@@ -292,11 +244,8 @@ const ProjectsPage = () => {
       let taskRef = child(db, `tasks/${task_uid}`)
       off(taskRef)
     }
-    setTasks((prev) => {
-      return []
-    })
     // set watchers on updated list of tasks
-    for (const task_uid in item.tasks) {
+    for (const task_uid in item?.tasks) {
       watchTask(task_uid)
     }
   }
@@ -304,7 +253,6 @@ const ProjectsPage = () => {
   const watchTask = (task_uid) => {
     let taskRef = child(db, `tasks/${task_uid}`)
     onValue(taskRef, (snapshot) => {
-      console.log('task changed: ' + task_uid)
       let it = snapshot.val()
       if (it) {
         setTasks((prev) => {
@@ -364,55 +312,13 @@ const ProjectsPage = () => {
 
   const projectNameKeypress = (event) => {
     if (event.code === "Enter") {
-      clickCheck();
+      createProject();
     }
   }
-
-  const clickPlus = () => {
-    if (view === "create") {
-      setTask((prev) => {
-        let next = {
-          project: "",
-          owners: {},
-          name: "",
-          uid: "",
-        };
-        return next;
-      });
-      setView("list");
-      getTasks(project.uid);
-    } else if (view === "list-projects") {
-      setView("create");
-      setProject((prev) => {
-        let next = {
-          owners: {},
-          name: "after click plus",
-          value: "",
-          uid: "",
-        };
-        return next;
-      });
-      setTimeout(() => {
-        let inputs = document.getElementsByClassName("task-name");
-        let input = inputs[0];
-        input.focus();
-      }, 100);
-    }
-  };
 
   const clickCheckCreateProject = () => {
     createProject()
   }
-
-  const clickCheck = () => {
-    if (view === 'create') {
-      if (showSharing) {
-        this.shareProject()
-      } else {
-        this.createProject()
-      }
-    }
-  };
 
   const createProject = () => {
     if (project?.name.length === 0) {
@@ -433,9 +339,6 @@ const ProjectsPage = () => {
     update(db, updates).then(() => {
       setView((prev) => {
         return 'list-projects'
-      })
-      setShowSharing((prev) => {
-        return false
       })
       setEmail((prev) => {
         return ''
@@ -572,7 +475,7 @@ const ProjectsPage = () => {
 
   const taskNameKeypress = (event) => {
     if (event.code === "Enter") {
-      clickCheck();
+      addTaskToProject();
     }
   };
 
@@ -640,9 +543,6 @@ const ProjectsPage = () => {
             [user.uid]: true
           }
         }
-        console.log('added user to project, setting it from/to')
-        console.dir(prev)
-        console.dir(next)
         return next
       })
     }).catch((error) => {
@@ -669,22 +569,6 @@ const ProjectsPage = () => {
         data: {},
       };
     });
-  };
-
-  const getUserData = (userCredential) => {
-    get(child(db, `users/${userCredential.user.uid}`))
-      .then((snapshot) => {
-        if (snapshot.exists()) {
-          const user = snapshot.val();
-          user.uid = userCredential.user.uid;
-          authCtx.login(user);
-        } else {
-          console.log("No user data available");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   };
 
   return (
