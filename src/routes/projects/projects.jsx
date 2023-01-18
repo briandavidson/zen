@@ -29,7 +29,7 @@ const ProjectsPage = () => {
   const [task, setTask] = React.useState({name: ''});
   const [projectList, setProjectList] = React.useState({})
   const [projects, setProjects] = React.useState([]);
-  const [project, setProject] = React.useState({name: ''});
+  const [project, setProject] = React.useState({});
   const [showSharing, setShowSharing] = React.useState(false)
   const [shareMessage, setShareMessage] = React.useState('')
   const [email, setEmail] = React.useState('')
@@ -58,6 +58,7 @@ const ProjectsPage = () => {
   const watchUserProjectList = () => {
     let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`)
     onValue(userProjectListRef, (snapshot) => {
+      console.log('list of user projects changed')
       let updatedProjectList = snapshot.val()
       setProjectList((prev) => {
         return updatedProjectList
@@ -81,7 +82,10 @@ const ProjectsPage = () => {
   const watchProject = (project_uid) => {
     let projectRef = child(db, `projects/${project_uid}`)
     onValue(projectRef, (snapshot) => {
+      console.log('project changed: ' + project_uid)
+      console.dir(project)
       let it = snapshot.val()
+      console.dir(it)
       if (it) {
         setProjects((prev) => {
           let index = prev
@@ -97,6 +101,10 @@ const ProjectsPage = () => {
           }
           return [...next];
         });
+        // the selected project changed, check for task list diffs
+        if (it.uid === project.uid) {
+          refreshTaskWatchers(it)
+        }
       } else {
         setProjects((prev) => {
           let index = prev
@@ -126,7 +134,7 @@ const ProjectsPage = () => {
     setProject((prev) => {
       return {
         owners: {},
-        name: '',
+        name: 'after clickclosecreateproject',
         uid: '',
         tasks: {}
       }
@@ -159,7 +167,7 @@ const ProjectsPage = () => {
     setProject((prev) => {
       return {
         owners: {},
-        name: '',
+        name: 'after clickclose',
         uid: '',
         tasks: {}
       }
@@ -227,7 +235,6 @@ const ProjectsPage = () => {
     }
 
     update(db, updates).then(() => {
-      authCtx.user.tasks[task_uid] = true
       setTask((prev) => {
         let next = {
           project: '',
@@ -240,6 +247,7 @@ const ProjectsPage = () => {
       setProject((prev) => {
         return {
           ...prev,
+          name: 'after adding another user',
           tasks: {
             ...prev.tasks,
             [task_uid]: true
@@ -249,7 +257,7 @@ const ProjectsPage = () => {
       setView((prev) => {
         return 'edit-project'
       })
-      getTasks(project.uid)
+      watchTask(task_uid)
     }).catch((error) => {
       setTask((prev) => {
         let next = {
@@ -266,12 +274,14 @@ const ProjectsPage = () => {
 
   const selectProject = (item) => {
     setProject((prev) => {
+      console.log('current project, selected project')
+      console.dir(prev)
+      console.dir(item)
       return item
     })
     setView((prev) => {
       return 'edit-project'
     })
-    // getTasks(item.uid)
     refreshTaskWatchers(item)
   }
 
@@ -294,6 +304,7 @@ const ProjectsPage = () => {
   const watchTask = (task_uid) => {
     let taskRef = child(db, `tasks/${task_uid}`)
     onValue(taskRef, (snapshot) => {
+      console.log('task changed: ' + task_uid)
       let it = snapshot.val()
       if (it) {
         setTasks((prev) => {
@@ -375,7 +386,7 @@ const ProjectsPage = () => {
       setProject((prev) => {
         let next = {
           owners: {},
-          name: "",
+          name: "after click plus",
           value: "",
           uid: "",
         };
@@ -420,13 +431,6 @@ const ProjectsPage = () => {
     updates[`/users/${authCtx.user.uid}/projects/${project_uid}`] = true
 
     update(db, updates).then(() => {
-      setProject((prev) => {
-        return {
-          owners: {},
-          name: '',
-          uid: ''
-        }
-      })
       setView((prev) => {
         return 'list-projects'
       })
@@ -439,14 +443,6 @@ const ProjectsPage = () => {
       setShareMessage((prev) => {
         return ''
       })
-      // make sure user.projects is defined
-      if (!authCtx.user.projects) {
-        authCtx.user = {
-          ...authCtx.user,
-          projects: {}
-        }
-      }
-      authCtx.user.projects[project_uid] = true
     }).catch((error) => {
       console.log(error)
     });
@@ -510,11 +506,10 @@ const ProjectsPage = () => {
       }
     }
     update(db, updates).then(() => {
-      delete authCtx.user.projects[item.uid]
       setProject((prev) => {
         let next = {
           owners: {},
-          name: '',
+          name: 'after deleting a project',
           uid: '',
           tasks: {}
         }
@@ -545,9 +540,6 @@ const ProjectsPage = () => {
       updates[`/projects/${item.project}/tasks/${item.uid}`] = {};
     }
     update(db, updates).then(() => {
-      let next = authCtx.user.tasks;
-      delete next[item.uid];
-      authCtx.user.tasks = next;
       let taskRef = child(db, `/tasks/${item.uid}`);
       off(taskRef);
       getTasks(project.uid)
@@ -638,6 +630,20 @@ const ProjectsPage = () => {
     update(db, updates).then(() => {
       setShareMessage((prev) => {
         return `${project.name} is now shared with ${email}`
+      })
+      // add new user to project in state
+      setProject((prev) => {
+        let next = {
+          ...prev,
+          owners: {
+            ...prev.owners,
+            [user.uid]: true
+          }
+        }
+        console.log('added user to project, setting it from/to')
+        console.dir(prev)
+        console.dir(next)
+        return next
       })
     }).catch((error) => {
       console.log(error)
