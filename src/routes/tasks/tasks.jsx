@@ -1,10 +1,7 @@
-import React, { useState, useContext } from "react";
-import { Link, Redirect, useHistory } from "react-router-dom";
+import React from "react";
 import AuthContext from "../../providers/auth";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import {
   getDatabase,
-  get,
   child,
   ref,
   push,
@@ -14,11 +11,9 @@ import {
 } from "firebase/database";
 import app from "../../firebase.js";
 
-import KaizenLogo from "../../assets/images/favicon.jpg";
 import "./tasks.scss";
 
 const TasksPage = () => {
-  let history = useHistory();
   const [view, setView] = React.useState("list");
   const [modal, setModal] = React.useState({
     visible: false,
@@ -29,22 +24,22 @@ const TasksPage = () => {
   const [task, setTask] = React.useState({});
   const [projects, setProjects] = React.useState([]);
   const [project, setProject] = React.useState({ uid: "" });
-  const authCtx = useContext(AuthContext);
+  const authCtx = React.useContext(AuthContext);
 
   // firebase vars
-  const auth = getAuth(app);
   const db = ref(getDatabase(app));
 
   React.useEffect(() => {
-    getTasks();
-    watchTasks()
+    watchUserTaskList()
     return () => {
       for (var i = 0; i < tasks?.length; i++) {
         const removeListenerRef = child(db, `tasks/${tasks[i].uid}`)
         off(removeListenerRef)
       }
+      let userTaskListRef = child(db, `users/${authCtx.user.uid}/tasks`)
+      off(userTaskListRef)
     };
-  }, []);
+  }, [authCtx.user.uid, db]);
 
   const watchTask = (task_uid) => {
     let taskRef = child(db, `tasks/${task_uid}`)
@@ -58,7 +53,11 @@ const TasksPage = () => {
             })
             .indexOf(it.uid);
           let next = prev;
-          next[index] = it;
+          if (index === -1) {
+            next.push(it)
+          } else {
+            next[index] = it;
+          }
           return [...next];
         });
       } else {
@@ -76,42 +75,25 @@ const TasksPage = () => {
     })
   }
 
-  const watchTasks = async () => {
-    for (var task_uid in authCtx.user?.tasks) {
-      let item = await getTask(task_uid);
-      if (item) {
-        item.uid = task_uid;
-        let taskRef = child(db, `tasks/${task_uid}`);
-        onValue(taskRef, (snapshot) => {
-          let it = snapshot.val();
-          // if a task changed, update it. else if a task got deleted, remove it from this.tasks
-          if (it) {
-            setTasks((prev) => {
-              let index = prev
-                .map((element) => {
-                  return element.uid;
-                })
-                .indexOf(it.uid);
-              let next = prev;
-              next[index] = it;
-              return [...next];
-            });
-          } else {
-            setTasks((prev) => {
-              let index = prev
-                .map((element) => {
-                  return element.uid;
-                })
-                .indexOf(snapshot.key);
-              let next = prev;
-              next.splice(index, 1);
-              return [...next];
-            });
-          }
-        });
-      }
+  const watchUserTaskList = () => {
+    let userTaskListRef = child(db, `users/${authCtx.user.uid}/tasks`)
+    onValue(userTaskListRef, (snapshot) => {
+      let updatedTaskList = snapshot.val()
+      refreshTaskWatchers(updatedTaskList)
+    })
+  }
+
+  const refreshTaskWatchers = (updatedTaskList) => {
+    // turn off existing watchers
+    for (const task_uid in tasks) {
+      let taskRef = child(db, `tasks/${task_uid}`)
+      off(taskRef)
     }
-  };
+    // set watchers on updated list of tasks
+    for (const task_uid in updatedTaskList) {
+      watchTask(task_uid)
+    }
+  }
 
   const clickPlus = () => {
     if (view === "create") {
@@ -125,7 +107,6 @@ const TasksPage = () => {
         return next;
       });
       setView("list");
-      getTasks();
     } else if (view === "list") {
       setView("create");
       setProject((prev) => {
@@ -217,8 +198,6 @@ const TasksPage = () => {
           return "list";
         });
 
-        // refresh tasks
-        getTasks();
       })
       .catch((error) => {
         setTask((prev) => {
@@ -240,29 +219,6 @@ const TasksPage = () => {
     updates[`tasks/${item.uid}/checked`] = item.checked;
     update(db, updates).then(() => {
     });
-  };
-
-  const getTask = (task_uid) => {
-    return get(child(db, `tasks/${task_uid}`)).then(async (snapshot) => {
-      let task_data = snapshot.val();
-      return task_data;
-    });
-  };
-
-  const getTasks = async () => {
-    setTasks((prev) => {
-      return [];
-    });
-    for (var task_uid in authCtx.user.tasks) {
-      let task_data = await getTask(task_uid);
-      if (task_data) {
-        task_data.uid = task_uid;
-        setTasks((prev) => {
-          let next = [...prev, task_data];
-          return next;
-        });
-      }
-    }
   };
 
   const editTask = (item) => {
@@ -341,22 +297,6 @@ const TasksPage = () => {
         data: {}
       }
     })
-  };
-
-  const getUserData = (userCredential) => {
-    get(child(db, `users/${userCredential.user.uid}`))
-      .then((snapshot) => {
-        if (snapshot.exists()) {
-          const user = snapshot.val();
-          user.uid = userCredential.user.uid;
-          authCtx.login(user);
-        } else {
-          console.log("No user data available");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   };
 
   return (

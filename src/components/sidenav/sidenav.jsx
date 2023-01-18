@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, Redirect, useHistory } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import AuthContext from "../../providers/auth";
 import "./sidenav.scss";
 

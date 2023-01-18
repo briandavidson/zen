@@ -27,6 +27,7 @@ const ProjectsPage = () => {
   });
   const [tasks, setTasks] = React.useState([]);
   const [task, setTask] = React.useState({name: ''});
+  const [projectList, setProjectList] = React.useState({})
   const [projects, setProjects] = React.useState([]);
   const [project, setProject] = React.useState({name: ''});
   const [showSharing, setShowSharing] = React.useState(false)
@@ -39,31 +40,83 @@ const ProjectsPage = () => {
   const db = ref(getDatabase(app));
 
   React.useEffect(() => {
-    getProjects();
-    // watchProjects()
+    watchUserProjectList()
+    return () => {
+      for (var i = 0; i < projects?.length; i++) {
+        const removeListenerRef = child(db, `projects/${projects[i].uid}`)
+        off(removeListenerRef)
+      }
+      for (var i = 0; i < tasks?.length; i++) {
+        const removeListenerRef = child(db, `tasks/${tasks[i].uid}`)
+        off(removeListenerRef)
+      }
+      let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`)
+      off(userProjectListRef)
+    };
   }, []);
+
+  const watchUserProjectList = () => {
+    let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`)
+    onValue(userProjectListRef, (snapshot) => {
+      let updatedProjectList = snapshot.val()
+      setProjectList((prev) => {
+        return updatedProjectList
+      })
+      refreshProjectWatchers(updatedProjectList)
+    })
+  }
+
+  const refreshProjectWatchers = (updatedProjectList) => {
+    // turn off existing watchers
+    for (const project_uid in projects) {
+      let projectRef = child(db, `projects/${project_uid}`)
+      off(projectRef)
+    }
+    // set watchers on updated list of tasks
+    for (const project_uid in updatedProjectList) {
+      watchProject(project_uid)
+    }
+  }
+
+  const watchProject = (project_uid) => {
+    let projectRef = child(db, `projects/${project_uid}`)
+    onValue(projectRef, (snapshot) => {
+      let it = snapshot.val()
+      if (it) {
+        setProjects((prev) => {
+          let index = prev
+            .map((element) => {
+              return element.uid;
+            })
+            .indexOf(it.uid);
+          let next = prev;
+          if (index === -1) {
+            next.push(it)
+          } else {
+            next[index] = it;
+          }
+          return [...next];
+        });
+      } else {
+        setProjects((prev) => {
+          let index = prev
+            .map((element) => {
+              return element.uid;
+            })
+            .indexOf(snapshot.key);
+          let next = prev;
+          next.splice(index, 1);
+          return [...next];
+        });
+      }
+    })
+  }
 
   const getProject = (project_uid) => {
     return get(child(db, `projects/${project_uid}`)).then(async (snapshot) => {
       let project_data = snapshot.val();
       return project_data;
     });
-  };
-
-  const getProjects = async () => {
-    setProjects((prev) => {
-      return [];
-    });
-    for (var project_uid in authCtx.user.projects) {
-      let project_data = await getProject(project_uid);
-      if (project_data) {
-        project_data.uid = project_uid;
-        setProjects((prev) => {
-          let next = [...prev, project_data];
-          return next;
-        });
-      }
-    }
   };
 
   const clickCloseCreateProject = () => {
@@ -218,7 +271,58 @@ const ProjectsPage = () => {
     setView((prev) => {
       return 'edit-project'
     })
-    getTasks(item.uid)
+    // getTasks(item.uid)
+    refreshTaskWatchers(item)
+  }
+
+  const refreshTaskWatchers = (item) => {
+    // turn off existing watchers
+    let oldTasks = tasks
+    for (const task_uid in oldTasks) {
+      let taskRef = child(db, `tasks/${task_uid}`)
+      off(taskRef)
+    }
+    setTasks((prev) => {
+      return []
+    })
+    // set watchers on updated list of tasks
+    for (const task_uid in item.tasks) {
+      watchTask(task_uid)
+    }
+  }
+
+  const watchTask = (task_uid) => {
+    let taskRef = child(db, `tasks/${task_uid}`)
+    onValue(taskRef, (snapshot) => {
+      let it = snapshot.val()
+      if (it) {
+        setTasks((prev) => {
+          let index = prev
+            .map((element) => {
+              return element.uid;
+            })
+            .indexOf(it.uid);
+          let next = prev;
+          if (index === -1) {
+            next.push(it)
+          } else {
+            next[index] = it;
+          }
+          return [...next];
+        });
+      } else {
+        setTasks((prev) => {
+          let index = prev
+            .map((element) => {
+              return element.uid;
+            })
+            .indexOf(snapshot.key);
+          let next = prev;
+          next.splice(index, 1);
+          return [...next];
+        });
+      }
+    })
   }
 
   const showConfirmDeleteProjectModal = (item) => {
@@ -343,7 +447,6 @@ const ProjectsPage = () => {
         }
       }
       authCtx.user.projects[project_uid] = true
-      getProjects()
     }).catch((error) => {
       console.log(error)
     });
@@ -428,7 +531,6 @@ const ProjectsPage = () => {
         }
         return next
       })
-      getProjects()
     })
   }
 
