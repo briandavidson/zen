@@ -573,10 +573,6 @@ const ProjectsPage = () => {
 
   return (
     <>
-    <div className="project-info">
-      <span className="project-name">{project?.name}</span>
-      <span className="project-uid">{project?.uid}</span>
-    </div>
       <div className="mobile-buttons">
         {(view === "list-projects" ||
           view === "create-project" ||
