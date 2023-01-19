@@ -112,7 +112,6 @@
   transform: translate(-50%, -50%);
   background-image: linear-gradient(to bottom, rgba(0, 0, 0, .9), rgba(0, 0, 0, .25));
   .items-list {
-    // background-image: url('../../assets/images/trees.jpg');
     border-radius: 3px;
     padding: 2px;
     position: absolute;
@@ -124,86 +123,6 @@
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
-    .item {
-      overflow: hidden;
-      min-height: 36px;
-      position: relative;
-      display: flex;
-      color: white;
-      margin: 2px 0px;
-      align-items: center;
-      border-radius: 3px;
-      background: rgba(0, 0, 0, .35);
-      .checkbox-container {
-        height: 36px;
-        width: 36px;
-        margin-right: 0px;
-        border-right: none;
-        border-top-right-radius: 0px;
-        border-bottom-right-radius: 0px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        .custom-checkbox {
-          border-radius: 3px;
-          position: relative;
-          top: 0;
-          left: 0;
-          height: 15px;
-          width: 15px;
-          background-color: rgba(0, 0, 0, 70%);
-          border: 1px solid #262525;
-        }
-        .checkbox-input {
-          opacity: 0;
-          height: 0;
-          width: 0;
-          ~ .custom-checkbox:after {
-            content: "";
-            position: absolute;
-            display: none;
-            left: 4px;
-            top: -1px;
-            width: 5px;
-            height: 10px;
-            border: solid white;
-            border-width: 0 3px 3px 0;
-            transform: rotate(45deg);
-          }
-          &.checked {
-            ~ .custom-checkbox:after {
-              display: block;
-            }
-          }
-        }
-      }
-      .text-container {
-        border-radius: 3px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        width: calc(100% - 40px);
-        .item-title {
-          margin-left: 6px;
-          font-size: 14px;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          white-space: nowrap;
-          &.checked {
-            text-decoration: line-through;
-            font-style: italic;
-            color: gray;
-          }
-        }
-      }
-      .delete-task-button {
-        transform: rotate(45deg);
-        position: absolute;
-        top: -2px;
-        right: 0px;
-        cursor: pointer;
-      }
-    }
   }
   .no-items {
     position: absolute;
