@@ -14,6 +14,7 @@ import app from "../../firebase.js";
 import "./projects.scss";
 
 import Task from "../../components/task/task";
+import Project from '../../components/project/project'
 
 const ProjectsPage = () => {
   const [view, setView] = React.useState("list-projects");
@@ -49,6 +50,12 @@ const ProjectsPage = () => {
     };
   }, [authCtx.user, db]);
 
+  React.useEffect(() => {
+    if (project.uid) {
+      getTasks(project.uid)
+    }
+  }, [project])
+
   const watchUserProjectList = () => {
     let userProjectListRef = child(db, `users/${authCtx.user.uid}/projects`);
     onValue(userProjectListRef, (snapshot) => {
@@ -63,7 +70,7 @@ const ProjectsPage = () => {
       let projectRef = child(db, `projects/${project_uid}`);
       off(projectRef);
     }
-    // set watchers on updated list of tasks
+    // set watchers on updated list of projects
     for (const project_uid in updatedProjectList) {
       watchProject(project_uid);
     }
@@ -75,7 +82,7 @@ const ProjectsPage = () => {
       let it = snapshot.val();
       if (it) {
         // the selected project changed, check for task list diffs
-        if (it.uid === project.uid) {
+        if (it.uid === project_uid) {
           getTasks(it.uid);
         }
         setProjects((prev) => {
@@ -234,8 +241,9 @@ const ProjectsPage = () => {
   };
 
   const selectProject = (item) => {
-    getTasks(item.uid)
     setProject((prev) => {
+      let projectRef = child(db, `projects/${prev.uid}`)
+      off(projectRef)
       return item;
     });
     setView((prev) => {
@@ -309,10 +317,6 @@ const ProjectsPage = () => {
     if (event.code === "Enter") {
       createProject();
     }
-  };
-
-  const clickCheckCreateProject = () => {
-    createProject();
   };
 
   const createProject = () => {
@@ -569,6 +573,10 @@ const ProjectsPage = () => {
 
   return (
     <>
+    <div className="project-info">
+      <span className="project-name">{project?.name}</span>
+      <span className="project-uid">{project?.uid}</span>
+    </div>
       <div className="mobile-buttons">
         {(view === "list-projects" ||
           view === "create-project" ||
@@ -612,7 +620,7 @@ const ProjectsPage = () => {
           <svg
             className={`check ${view}`}
             onClick={() => {
-              clickCheckCreateProject();
+              createProject();
             }}
             viewBox="0 0 100 100"
             width="40"
@@ -687,41 +695,7 @@ const ProjectsPage = () => {
           {projects.length > 0 && (
             <div className="items-list">
               {projects?.map((item, p) => (
-                <div key={p} className="item">
-                  <div
-                    onClick={() => {
-                      selectProject(item);
-                    }}
-                    className="text-container"
-                  >
-                    <span className="item-title">{item.name}</span>
-                  </div>
-                  <svg
-                    className="delete-task-button"
-                    onClick={() => {
-                      showConfirmDeleteProjectModal(item);
-                    }}
-                    viewBox="0 0 100 100"
-                    width="40"
-                    height="40"
-                    stroke="white"
-                  >
-                    <line
-                      x1="30"
-                      y1="50"
-                      x2="70"
-                      y2="50"
-                      strokeWidth="5"
-                    ></line>
-                    <line
-                      x1="50"
-                      y1="30"
-                      x2="50"
-                      y2="70"
-                      strokeWidth="5"
-                    ></line>
-                  </svg>
-                </div>
+                <Project key={p} data={item} selectProject={selectProject} showConfirmDeleteProjectModal={showConfirmDeleteProjectModal}/>
               ))}
             </div>
           )}
